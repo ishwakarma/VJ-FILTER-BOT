@@ -267,7 +267,7 @@ async def start(client, message):
         verify_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
         await db.create_verify_id(user_id, verify_id)
         buttons = [[
-                    InlineKeyboardButton(text="⚠️ ᴠᴇʀɪғʏ ⚠️", url=await get_shortlink(f"https://telegram.me/{temp.U_NAME}?start=kdbotz_{user_id}_{verify_id}", is_second_shortener)), 
+                    InlineKeyboardButton(text="⚠️ ᴠᴇʀɪғʏ ⚠️", url=await get_shortlink_kd(f"https://telegram.me/{temp.U_NAME}?start=kdbotz_{user_id}_{verify_id}", is_second_shortener)), 
                     InlineKeyboardButton(text="❗ ʜᴏᴡ ᴛᴏ ᴠᴇʀɪғʏ ❗", url=how_to_download_link)
                     ]]
         reply_markup=InlineKeyboardMarkup(buttons)
