@@ -145,6 +145,19 @@ else:
     ON_HEROKU = False
 URL = environ.get("URL", "https://testofvjfilter-1fa60b1b8498.herokuapp.com/")
 
+TIMEZONE = environ.get("TIMEZONE", "Asia/Kolkata")
+VERIFY_IMG = environ.get("VERIFY_IMG", "https://graph.org/file/77dee0707be87575ef92b.jpg")
+VERIFY_TIME2 = int(environ.get('VERIFY_TIME2', 600))
+
+SHORTENER_API = environ.get("SHORTENER_API", "a6a6f19a797cfa9d7b17f7d3abceb5ba0273b67f")
+SHORTENER_WEBSITE = environ.get("SHORTENER_WEBSITE", "tnshort.net")
+
+SHORTENER_API2 = environ.get("SHORTENER_API2", "20bcea307052ea50f3bdc0d0f8230865d0500da2")
+SHORTENER_WEBSITE2 = environ.get("SHORTENER_WEBSITE2", "gyanilinks.com")
+
+TUTORIAL_LINK_1 = os.environ.get('TUTORIAL_LINK_1', 'https://t.me/HowToDownload_linkz/11')
+TUTORIAL_LINK_2 = os.environ.get('TUTORIAL_LINK_2', 'https://t.me/HowToDownload_linkz/13')
+
 
 # Rename Info : If True Then Bot Rename File Else Not
 RENAME_MODE = bool(environ.get('RENAME_MODE', False)) # Set True or False
