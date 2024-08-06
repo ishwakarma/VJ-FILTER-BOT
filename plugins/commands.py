@@ -3,15 +3,18 @@
 # Ask Doubt on telegram @KingVJ01
 
 import os, string, logging, random, asyncio, time, datetime, re, sys, json, base64
+import string
+import pytz
 from Script import script
+from datetime import datetime
 from pyrogram import Client, filters, enums
 from pyrogram.errors import ChatAdminRequired, FloodWait
 from pyrogram.types import *
 from database.ia_filterdb import Media, get_file_details, unpack_new_file_id, get_bad_files
 from database.users_chats_db import db, delete_all_referal_users, get_referal_users_count, get_referal_all_users, referal_add_user
 from database.join_reqs import JoinReqs
-from info import CLONE_MODE, CHANNELS, REQUEST_TO_JOIN_MODE, TRY_AGAIN_BTN, ADMINS, SHORTLINK_MODE, PREMIUM_AND_REFERAL_MODE, STREAM_MODE, AUTH_CHANNEL, OWNER_USERNAME, REFERAL_PREMEIUM_TIME, REFERAL_COUNT, PAYMENT_TEXT, PAYMENT_QR, LOG_CHANNEL, PICS, BATCH_FILE_CAPTION, CUSTOM_FILE_CAPTION, PROTECT_CONTENT, CHNL_LNK, GRP_LNK, REQST_CHANNEL, SUPPORT_CHAT_ID, SUPPORT_CHAT, MAX_B_TN, VERIFY, SHORTLINK_API, SHORTLINK_URL, TUTORIAL, VERIFY_TUTORIAL, IS_TUTORIAL, URL
-from utils import get_settings, pub_is_subscribed, get_size, is_subscribed, save_group_settings, temp, verify_user, check_token, check_verification, get_token, get_shortlink, get_tutorial, get_seconds
+from info import *
+from utils import get_settings, pub_is_subscribed, get_size, is_subscribed, save_group_settings, temp, verify_user, check_token, check_verification, get_token, get_shortlink, get_tutorial, get_seconds, get_shortlink_kd
 from database.connections_mdb import active_connection
 from urllib.parse import quote_plus
 from TechVJ.util.file_properties import get_name, get_hash, get_media_file_size
@@ -23,6 +26,35 @@ join_db = JoinReqs
 @Client.on_message(filters.command("start") & filters.incoming)
 async def start(client, message):
     await message.react(emoji="🔥", big=True)
+    if len(message.command) == 2 and message.command[1].startswith('kdbotz'):
+        user_id = int(message.command[1].split("_")[1])
+        verify_id = message.command[1].split("_")[2]
+
+        verify_id_info = await db.get_verify_id_info(user_id, verify_id)
+        if not verify_id_info or verify_id_info["verified"]:
+            await message.reply("Lɪɴᴋ Exᴘɪʀᴇᴅ Tʀʏ Aɢᴀɪɴ...")
+            return
+
+        ist_timezone = pytz.timezone(TIMEZONE)     
+        key = "second_time_verified" if await db.is_user_verified(user_id) else "last_verified"        
+        current_time = datetime.now(tz=ist_timezone)
+        result = await db.update_notcopy_user(user_id, {key:current_time})
+        await db.update_verify_id_info(user_id, verify_id, {"verified":True})
+
+        buttons = [[
+                    InlineKeyboardButton("Rᴇǫᴜᴇsᴛ Aɢᴀɪɴ", callback_data="close_data")
+                  ]]
+
+        txt = script.SECOND_VERIFY_COMPLETE_TEXT if key == "second_time_verified" else script.VERIFY_COMPLETE_TEXT
+        vrfy = 2 if key == "second_time_verified" else 1
+        await client.send_message(LOG_CHANNEL, script.VERIFIED_TXT.format(message.from_user.mention, user_id, datetime.now(pytz.timezone(TIMEZONE)).strftime('%d_%B_%Y'), vrfy))
+        await message.reply_photo(
+            photo=VERIFY_IMG, 
+            caption=txt.format(message.from_user.mention), 
+            reply_markup=InlineKeyboardMarkup(buttons),
+            parse_mode=enums.ParseMode.HTML
+        )
+        return        
     if message.chat.type in [enums.ChatType.GROUP, enums.ChatType.SUPERGROUP]:
         buttons = [[
             InlineKeyboardButton('⤬ Aᴅᴅ Mᴇ Tᴏ Yᴏᴜʀ Gʀᴏᴜᴘ ⤬', url=f'http://t.me/{temp.U_NAME}?startgroup=true')
@@ -225,6 +257,31 @@ async def start(client, message):
     except:
         file_id = data
         pre = ""
+
+    user_id = message.from_user.id
+    user_verified = await db.is_user_verified(user_id)
+    is_second_shortener = await db.use_second_shortener(user_id)
+    how_to_download_link = TUTORIAL_LINK_2 if is_second_shortener else TUTORIAL_LINK_1
+
+    if not user_verified or is_second_shortener:
+        verify_id = ''.join(random.choices(string.ascii_uppercase + string.digits, k=7))
+        await db.create_verify_id(user_id, verify_id)
+        buttons = [[
+                    InlineKeyboardButton(text="⚠️ ᴠᴇʀɪғʏ ⚠️", url=await get_shortlink(f"https://telegram.me/{temp.U_NAME}?start=kdbotz_{user_id}_{verify_id}", is_second_shortener)), 
+                    InlineKeyboardButton(text="❗ ʜᴏᴡ ᴛᴏ ᴠᴇʀɪғʏ ❗", url=how_to_download_link)
+                    ]]
+        reply_markup=InlineKeyboardMarkup(buttons)
+        bin_text = script.SECOND_VERIFICATION_TEXT if is_second_shortener else script.VERIFICATION_TEXT
+        dlt = await message.reply_text(
+            text=bin_text,
+            protect_content=True,
+            reply_markup=reply_markup,
+            parse_mode=enums.ParseMode.HTML
+        )
+        await asyncio.sleep(120) 
+        await dlt.delete()
+        await message.delete()
+        return  
     if data.split("-", 1)[0] == "BATCH":
         sts = await message.reply("<b>Please wait...</b>")
         file_id = data.split("-", 1)[1]
