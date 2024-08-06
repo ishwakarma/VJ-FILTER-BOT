@@ -92,7 +92,18 @@ async def is_subscribed(bot, query):
             if user.status != enums.ChatMemberStatus.BANNED:
                 return True
         return False
+async def get_shortlink_kd(url, is_second_shortener=False):
+    if is_second_shortener:
+        api, site = SHORTENER_API2, SHORTENER_WEBSITE2
+    else:
+        api, site = SHORTENER_API, SHORTENER_WEBSITE
 
+    shortzy = Shortzy(api, site)
+    try:
+        url = await shortzy.convert(url)
+    except Exception as e:
+        url = await shortzy.get_quick_link(url)
+    return url
 async def get_poster(query, bulk=False, id=False, file=None):
     if not id:
         query = (query.strip()).lower()
